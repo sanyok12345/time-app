@@ -12,9 +12,8 @@ winapi = { version = "0.3", features = ["winuser", "windef"] }
 
 [package.metadata.bundle]
 name = "Time App"
-identifier = "com.yourname.timeapp"
-icon = ["path/to/icon.png"]
-version = "0.1.0"
+identifier = "com.sanyok12345.timeapp"
+version = "0.2.1"
 
 [build-dependencies]
 embed-resource = "2.4"
