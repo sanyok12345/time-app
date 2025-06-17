@@ -65,34 +65,34 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download Linux artifact
       uses: actions/download-artifact@v4
       with:
         name: time-app-linux-x86_64
         path: ./time-app-linux-x86_64
-    
+
     - name: Download Windows artifact
       uses: actions/download-artifact@v4
       with:
         name: time-app-windows-x86_64.exe
         path: ./time-app-windows-x86_64.exe
-    
+
     - name: Download macOS x86_64 artifact
       uses: actions/download-artifact@v4
       with:
         name: time-app-macos-x86_64
         path: ./time-app-macos-x86_64
-    
+
     - name: Download macOS aarch64 artifact
       uses: actions/download-artifact@v4
       with:
         name: time-app-macos-aarch64
         path: ./time-app-macos-aarch64
-    
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
