@@ -37,11 +37,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable
         target: ${{ matrix.target }}
-        override: true
 
     - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
@@ -49,23 +48,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
 
     - name: Build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --release --target ${{ matrix.target }}
+      run: cargo build --release --target ${{ matrix.target }}
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.asset_name }}
         path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
@@ -79,56 +69,39 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Download all artifacts
-      uses: actions/download-artifact@v3
+    - name: Download Linux artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: time-app-linux-x86_64
+        path: ./time-app-linux-x86_64
+    
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: time-app-windows-x86_64.exe
+        path: ./time-app-windows-x86_64.exe
+    
+    - name: Download macOS x86_64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: time-app-macos-x86_64
+        path: ./time-app-macos-x86_64
+    
+    - name: Download macOS aarch64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: time-app-macos-aarch64
+        path: ./time-app-macos-aarch64
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-    
-    - name: Upload Linux Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./time-app-linux-x86_64/time-app
-        asset_name: time-app-linux-x86_64
-        asset_content_type: application/octet-stream
-    
-    - name: Upload Windows Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./time-app-windows-x86_64.exe/time-app.exe
-        asset_name: time-app-windows-x86_64.exe
-        asset_content_type: application/octet-stream
-    
-    - name: Upload macOS x86_64 Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./time-app-macos-x86_64/time-app
-        asset_name: time-app-macos-x86_64
-        asset_content_type: application/octet-stream
-    
-    - name: Upload macOS aarch64 Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./time-app-macos-aarch64/time-app
-        asset_name: time-app-macos-aarch64
-        asset_content_type: application/octet-stream
+        files: |
+          ./time-app-linux-x86_64/time-app|time-app-linux-x86_64
+          ./time-app-windows-x86_64.exe/time-app.exe|time-app-windows-x86_64.exe
+          ./time-app-macos-x86_64/time-app|time-app-macos-x86_64
+          ./time-app-macos-aarch64/time-app|time-app-macos-aarch64
